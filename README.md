@@ -13,6 +13,35 @@ A complete pack allocation calculator API built with Go, featuring optimal pack 
 
 ## Architecture Overview
 
+### Frontend Architecture
+
+The frontend is a modern React application with a component-based architecture:
+
+```
+frontend/
+├── src/
+│   ├── components/      # React components
+│   │   ├── ui/          # Reusable UI components (shadcn/ui)
+│   │   ├── OrderCalculator.tsx    # Main calculator interface
+│   │   ├── PackSizeManager.tsx    # Pack size management
+│   │   └── ErrorBoundary.tsx      # Error handling
+│   ├── lib/             # Utilities and store
+│   └── assets/          # Static assets
+├── public/              # Public assets
+└── Docker files         # Containerization
+```
+
+#### Frontend Technology Stack
+
+- **Framework**: React 19 with TypeScript
+- **Build Tool**: Vite
+- **Styling**: Tailwind CSS v4
+- **UI Components**: shadcn/ui (New York style) with Radix UI primitives
+- **State Management**: Zustand
+- **Form Handling**: React Hook Form with Zod validation
+- **Icons**: Lucide React
+- **Package Manager**: pnpm
+
 ### Backend Architecture
 
 The backend follows a clean architecture pattern with clear separation of concerns:
@@ -31,7 +60,7 @@ backend/
     └── middleware/      # HTTP middleware
 ```
 
-#### Technology Stack
+#### Backend Technology Stack
 
 - **Language**: Go 1.24.3
 - **Framework**: Gin
@@ -59,15 +88,33 @@ make setup-dev
 ```
 
 **Step 2: Verify Installation**
-- API: http://localhost:8080
-- Swagger: http://localhost:8080/swagger/index.html
-- Health: http://localhost:8080/health
+- **Frontend App**: http://localhost:5173
+- **API**: http://localhost:8080
+- **API Documentation**: http://localhost:8080/swagger/index.html
+- **Health Check**: http://localhost:8080/health
 
-**Step 3: Get Authentication Token**
+**Step 3: Calculate Packs**
+Use the React frontend or directly call the API:
+
+**Frontend Interface**: 
+- Visit http://localhost:5173
+- Configure pack sizes in the Pack Size Manager
+- Enter item quantities in the Order Calculator
+- View real-time optimal pack calculations
+
+**API Direct Access**:
 ```bash
 curl -X POST http://localhost:8080/api/v1/auth/token \
   -H "Content-Type: application/json" \
   -d '{"secret": "your-auth-secret-change-in-production"}'
+
+curl -X POST http://localhost:8080/api/v1/calculate \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -d '{
+    "items": 251,
+    "pack_sizes": [250, 500, 1000, 2000, 5000]
+  }'
 ```
 
 ### Development Commands
@@ -94,22 +141,64 @@ make clean          # Clean build artifacts
 - `GET /api/v1/health` - Health check
 - `GET /swagger/*` - API documentation
 
+## ✨ Full Stack Features
+
+This application combines a powerful Go backend with a modern React frontend:
+
+### 🎯 **User Experience**
+- **Intuitive Interface**: Clean, modern UI built with React 19 and Tailwind CSS
+- **Real-time Calculations**: Instant pack optimization as you type
+- **Dynamic Pack Management**: Add/remove pack sizes on the fly
+- **Responsive Design**: Works seamlessly on desktop and mobile
+- **Error Handling**: Graceful error boundaries and user feedback
+
+### ⚡ **Performance & Reliability**
+- **Fast Backend**: Go-powered API with efficient dynamic programming algorithm
+- **Modern Frontend**: Vite build tool for lightning-fast development and builds
+- **Type Safety**: Full TypeScript coverage with Zod validation
+- **State Management**: Zustand for predictable state updates
+- **JWT Authentication**: Secure API access
+
+### 🛠️ **Developer Experience**
+- **Hot Reload**: Instant feedback during development (Vite + Air)
+- **Component Library**: shadcn/ui with beautiful, accessible components
+- **Form Handling**: React Hook Form with validation
+- **API Documentation**: Auto-generated Swagger documentation
+- **Docker Support**: Full containerization for easy deployment
+
 ## 🧮 Pack Calculation Algorithm
 
 See the complete explanation for the algorithm at the [Back-end README](./backend/README.md).
 
-### Request Flow
+### Frontend User Flow
+
+```mermaid
+graph TD
+    A[User visits Frontend] --> B[Pack Size Manager]
+    B --> C{Configure Pack Sizes}
+    C --> D[Add/Remove Pack Sizes]
+    C --> E[Use Default Sizes]
+    D --> F[Order Calculator]
+    E --> F
+    F --> G[Enter Item Quantity]
+    G --> H[Real-time Validation]
+    H --> I[API Call to Backend]
+    I --> J[Display Results Table]
+    J --> K[Show Optimal Pack Breakdown]
+```
+
+### API Request Flow
 
 ```mermaid
 sequenceDiagram
-    participant C as Client
+    participant F as Frontend
     participant G as Gin Router
     participant M as JWT Middleware
     participant H as Handler
     participant U as Use Case
     participant S as Service
     
-    C->>G: POST /api/v1/calculate
+    F->>G: POST /api/v1/calculate
     G->>M: Validate JWT Token
     M->>H: Authenticated Request
     H->>U: Execute Use Case
@@ -119,7 +208,8 @@ sequenceDiagram
     S-->>U: Return optimal allocation
     U-->>H: Return result
     H-->>G: JSON Response
-    G-->>C: HTTP 200 + Pack Result
+    G-->>F: HTTP 200 + Pack Result
+    F->>F: Update UI with Results
 ```
 
 ### Usage
@@ -156,6 +246,7 @@ cd backend && go test -v ./internal/service/pack_calculator
 
 - **API Documentation**: http://localhost:8080/swagger/index.html
 - **Backend Details**: [backend/README.md](backend/README.md)
+- **FrontEnd Details**: [frontend/README.md](frontend/README.md)
 
 ## 📄 License
 

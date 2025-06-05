@@ -1,7 +1,7 @@
 # Packs Calculator - Makefile
 BACKEND_DIR := backend
 
-.PHONY: help setup-dev docker-up docker-down docker-dev dev test build clean migrate-up migrate-down migrate-create
+.PHONY: help setup-dev docker-up docker-down docker-dev dev dev-frontend dev-backend test build clean migrate-up migrate-down migrate-create
 
 help:
 	@echo "Available commands:"
@@ -12,8 +12,10 @@ setup-dev: ## Complete development setup (includes starting all services)
 	go install github.com/swaggo/swag/cmd/swag@latest
 	go install github.com/air-verse/air@latest
 	go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
-	@echo "Installing dependencies..."
+	@echo "Installing backend dependencies..."
 	cd $(BACKEND_DIR) && go mod download && go mod tidy 
+	@echo "Installing frontend dependencies..."
+	cd frontend && pnpm install
 	@echo "Generating Swagger docs..."
 	cd $(BACKEND_DIR) && go build -o app cmd/server/main.go
 	cd $(BACKEND_DIR) && swag init -g cmd/server/main.go -o ./docs	
@@ -21,6 +23,7 @@ setup-dev: ## Complete development setup (includes starting all services)
 	docker compose up -d --build
 	@echo "✅ Development setup complete!"
 	@echo "Backend: http://localhost:8080"
+	@echo "Frontend: http://localhost:5173"
 	@echo "Swagger: http://localhost:8080/swagger/index.html"
 
 docker-up: ## Start all services (database + backend)
@@ -39,6 +42,21 @@ docker-dev: ## Switch back to full containerized development
 	@echo "Backend: http://localhost:8080"
 
 dev: ## Run in development mode with hot-reload (run setup-dev first)
+	@echo "Note: Run 'make setup-dev' first to start database and install dependencies"
+	@echo "🛑 Stopping backend and frontend containers to avoid port conflicts..."
+	docker compose stop backend frontend || true
+	@echo "📖 Generating Swagger docs..."
+	cd $(BACKEND_DIR) && swag init -g cmd/server/main.go -o ./docs
+	@echo "🔥 Starting backend with hot-reload..."
+	cd $(BACKEND_DIR) && air &
+	@echo "🎨 Starting frontend with hot-reload..."
+	cd frontend && pnpm dev
+
+dev-frontend: ## Run only frontend in development mode with hot-reload
+	@echo "🎨 Starting frontend with hot-reload..."
+	cd frontend && pnpm dev
+
+dev-backend: ## Run only backend in development mode with hot-reload
 	@echo "Note: Run 'make setup-dev' first to start database and install dependencies"
 	@echo "🛑 Stopping backend container to avoid port conflicts..."
 	docker compose stop backend || true
