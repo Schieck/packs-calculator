@@ -48,10 +48,10 @@ dev: ## Run in development mode with hot-reload (run setup-dev first)
 	cd $(BACKEND_DIR) && air
 
 migrate-up: ## Run database migrations
-	cd $(BACKEND_DIR) && migrate -path migrations -database "postgres://packer:secret@localhost:5432/packs?sslmode=disable" up
+	cd $(BACKEND_DIR) && migrate -path migrations -database "postgres://$${POSTGRES_USER:-packer}:$${POSTGRES_PASSWORD:-secret}@$${DB_HOST:-localhost}:$${DB_PORT:-5432}/$${POSTGRES_DB:-packs}?sslmode=disable" up
 
 migrate-down: ## Rollback last migration
-	cd $(BACKEND_DIR) && migrate -path migrations -database "postgres://packer:secret@localhost:5432/packs?sslmode=disable" down 1
+	cd $(BACKEND_DIR) && migrate -path migrations -database "postgres://$${POSTGRES_USER:-packer}:$${POSTGRES_PASSWORD:-secret}@$${DB_HOST:-localhost}:$${DB_PORT:-5432}/$${POSTGRES_DB:-packs}?sslmode=disable" down 1
 
 migrate-create: ## Create new migration (usage: make migrate-create NAME=create_users_table)
 	@if [ -z "$(NAME)" ]; then \

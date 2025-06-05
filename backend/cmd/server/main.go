@@ -18,9 +18,11 @@ import (
 
 	authService "github.com/Schieck/packs-calculator/internal/service/auth"
 	healthService "github.com/Schieck/packs-calculator/internal/service/health"
+	packCalculatorService "github.com/Schieck/packs-calculator/internal/service/pack_calculator"
 
 	authUseCase "github.com/Schieck/packs-calculator/internal/usecase/auth"
 	healthUseCase "github.com/Schieck/packs-calculator/internal/usecase/health"
+	packCalculatorUseCase "github.com/Schieck/packs-calculator/internal/usecase/pack_calculator"
 
 	"github.com/Schieck/packs-calculator/pkg/db"
 	"github.com/Schieck/packs-calculator/pkg/middleware"
@@ -59,15 +61,18 @@ func main() {
 	// Initialize services
 	authSvc := authService.NewAuthServiceWithDefaults(cfg.Auth.JWTSecret, cfg.Auth.AuthSecret)
 	healthSvc := healthService.NewHealthService(database, "1.0.0")
+	packCalculatorSvc := packCalculatorService.NewPackCalculatorService()
 
 	// Initialize use cases
 	authenticateUseCase := authUseCase.NewAuthenticateUseCase(authSvc, logger)
 	validateTokenUseCase := authUseCase.NewValidateTokenUseCase(authSvc, logger)
 	healthCheckUseCase := healthUseCase.NewHealthUseCase(healthSvc, logger)
+	calculatePacksUseCase := packCalculatorUseCase.NewCalculatePacksUseCase(packCalculatorSvc, logger)
 
 	// Initialize HTTP handlers
 	authHandler := httpAdapter.NewAuthHandler(authenticateUseCase, logger)
 	healthHandler := httpAdapter.NewHealthHandler(healthCheckUseCase, logger)
+	packCalculatorHandler := httpAdapter.NewCalculatorHandler(calculatePacksUseCase, logger)
 
 	// Setup Gin
 	if gin.Mode() == gin.ReleaseMode {
@@ -97,7 +102,7 @@ func main() {
 	protected := v1.Group("/")
 	protected.Use(middleware.JWT(validateTokenUseCase))
 	{
-		// TODO: Add calculator routes here
+		protected.POST("/calculate", packCalculatorHandler.Calculate)
 	}
 
 	// Setup HTTP server

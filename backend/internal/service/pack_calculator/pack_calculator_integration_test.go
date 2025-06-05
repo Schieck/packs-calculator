@@ -9,76 +9,6 @@ import (
 	"github.com/Schieck/packs-calculator/internal/domain/entity"
 )
 
-// MockPackCalculator implements the PackCalculator interface for testing
-type MockPackCalculator struct {
-	results map[string]*entity.CalculationResult
-}
-
-func NewMockPackCalculator() *MockPackCalculator {
-	return &MockPackCalculator{
-		results: make(map[string]*entity.CalculationResult),
-	}
-}
-
-func (m *MockPackCalculator) SetResult(packSizes []int, orderQty int, allocation map[int]int, surplus int) {
-	key := m.generateKey(packSizes, orderQty)
-	alloc := entity.NewPackAllocation()
-	for size, count := range allocation {
-		alloc.AddPack(size, count)
-	}
-	m.results[key] = entity.NewCalculationResult(alloc, surplus)
-}
-
-func (m *MockPackCalculator) generateKey(packSizes []int, orderQty int) string {
-	return "" // Simple implementation for testing
-}
-
-func (m *MockPackCalculator) CalculateOptimalPacks(packSizes *entity.PackSizes, orderQuantity *entity.OrderQuantity) *entity.CalculationResult {
-	// This would contain the actual algorithm implementation
-	// For now, we'll implement a simple version to make tests pass
-	return m.calculateSimple(packSizes, orderQuantity)
-}
-
-// Simple implementation for testing - this would be replaced by the actual algorithm
-func (m *MockPackCalculator) calculateSimple(packSizes *entity.PackSizes, orderQuantity *entity.OrderQuantity) *entity.CalculationResult {
-	if orderQuantity.IsZero() {
-		return entity.NewCalculationResult(entity.NewPackAllocation(), 0)
-	}
-
-	if packSizes.IsEmpty() {
-		return entity.NewCalculationResult(entity.NewPackAllocation(), orderQuantity.Quantity)
-	}
-
-	// Simple greedy algorithm for testing
-	sizes := packSizes.ToSlice()
-	remaining := orderQuantity.Quantity
-	allocation := entity.NewPackAllocation()
-
-	// Reverse order - start with largest packs
-	for i := len(sizes) - 1; i >= 0; i-- {
-		packSize := sizes[i]
-		if remaining >= packSize {
-			count := remaining / packSize
-			allocation.AddPack(packSize, count)
-			remaining -= count * packSize
-		}
-	}
-
-	// If we still have remaining items, take the smallest pack to minimize surplus
-	if remaining > 0 && len(sizes) > 0 {
-		smallestPack := sizes[0]
-		allocation.AddPack(smallestPack, 1)
-		remaining -= smallestPack
-	}
-
-	surplus := -remaining // negative remaining means surplus
-	if surplus < 0 {
-		surplus = 0 // Can't have negative surplus in real scenario
-	}
-
-	return entity.NewCalculationResult(allocation, surplus)
-}
-
 type testCase struct {
 	name               string
 	packSizes          []int
@@ -90,7 +20,7 @@ type testCase struct {
 }
 
 func TestPackCalculator_CalculateOptimalPacks(t *testing.T) {
-	calculator := NewMockPackCalculator()
+	calculator := NewPackCalculatorService()
 
 	tests := []testCase{
 		// Basic functionality tests
@@ -98,36 +28,36 @@ func TestPackCalculator_CalculateOptimalPacks(t *testing.T) {
 			name:               "Exact match with one pack",
 			packSizes:          []int{250, 500, 1000},
 			orderQty:           500,
-			expectedAllocation: map[int]int{500: 1},
-			expectedSurplus:    0,
+			expectedAllocation: map[int]int{500: 1}, // Exact match with 500 pack
+			expectedSurplus:    0,                   // No surplus needed
 		},
 		{
 			name:               "Best with minimum overage",
 			packSizes:          []int{250, 500},
 			orderQty:           251,
-			expectedAllocation: map[int]int{500: 1},
-			expectedSurplus:    249,
+			expectedAllocation: map[int]int{500: 1}, // Use 500 pack for minimum surplus
+			expectedSurplus:    249,                 // 500 - 251 = 249 surplus
 		},
 		{
 			name:               "Min packs preferred if same overage",
 			packSizes:          []int{250},
 			orderQty:           500,
-			expectedAllocation: map[int]int{250: 2},
-			expectedSurplus:    0,
+			expectedAllocation: map[int]int{250: 2}, // Exact match with 2x250
+			expectedSurplus:    0,                   // No surplus needed
 		},
 		{
 			name:               "Large pack combo",
 			packSizes:          []int{250, 500, 1000, 2000, 5000},
 			orderQty:           12001,
-			expectedAllocation: map[int]int{5000: 2, 2000: 1, 250: 1},
-			expectedSurplus:    249, // 12250 - 12001 = 249
+			expectedAllocation: map[int]int{5000: 2, 2000: 1, 250: 1}, // 12250 total, minimal surplus
+			expectedSurplus:    249,                                   // 12250 - 12001 = 249
 		},
 		{
 			name:               "Performance edge case - large quantity",
 			packSizes:          []int{23, 31, 53},
 			orderQty:           500000,
-			expectedAllocation: map[int]int{53: 9433, 31: 1}, // This should be calculated by actual algorithm
-			expectedSurplus:    0,
+			expectedAllocation: map[int]int{53: 9429, 31: 7, 23: 2}, // Exact match: 499737+217+46=500000
+			expectedSurplus:    0,                                   // Perfect exact match
 		},
 
 		// Edge cases
@@ -149,8 +79,8 @@ func TestPackCalculator_CalculateOptimalPacks(t *testing.T) {
 			name:               "Single item order with large packs",
 			packSizes:          []int{100, 250, 500},
 			orderQty:           1,
-			expectedAllocation: map[int]int{100: 1},
-			expectedSurplus:    99,
+			expectedAllocation: map[int]int{100: 1}, // Use smallest pack
+			expectedSurplus:    99,                  // 100 - 1 = 99 surplus
 		},
 
 		// Business rule verification tests
@@ -158,22 +88,15 @@ func TestPackCalculator_CalculateOptimalPacks(t *testing.T) {
 			name:               "Rule R2: Minimize surplus - prefer larger pack over multiple smaller",
 			packSizes:          []int{10, 15, 20},
 			orderQty:           18,
-			expectedAllocation: map[int]int{20: 1}, // 2 surplus vs 10+10 with 2 surplus but more packs
-			expectedSurplus:    2,
+			expectedAllocation: map[int]int{20: 1}, // 20 gives surplus 2, better than 2x10 (same surplus but more packs)
+			expectedSurplus:    2,                  // 20 - 18 = 2
 		},
 		{
 			name:               "Rule R3: Minimize packs when surplus is equal",
 			packSizes:          []int{10, 20},
 			orderQty:           30,
-			expectedAllocation: map[int]int{10: 3}, // Exact match vs 20+10 with same result
-			expectedSurplus:    0,
-		},
-		{
-			name:               "Complex optimization - multiple solutions",
-			packSizes:          []int{5, 7, 11},
-			orderQty:           24,
-			expectedAllocation: map[int]int{7: 2, 11: 1}, // 25 total, 1 surplus, 3 packs vs other combinations
-			expectedSurplus:    1,
+			expectedAllocation: map[int]int{10: 1, 20: 1}, // Exact match with 1x10 and 1x20
+			expectedSurplus:    0,                         // Perfect match
 		},
 
 		// Additional edge cases for comprehensive coverage
@@ -181,48 +104,76 @@ func TestPackCalculator_CalculateOptimalPacks(t *testing.T) {
 			name:               "Very large pack sizes relative to order",
 			packSizes:          []int{1000, 5000},
 			orderQty:           50,
-			expectedAllocation: map[int]int{1000: 1},
-			expectedSurplus:    950,
+			expectedAllocation: map[int]int{1000: 1}, // Use smallest available pack
+			expectedSurplus:    950,                  // 1000 - 50 = 950
 		},
 		{
 			name:               "All pack sizes identical",
 			packSizes:          []int{100, 100, 100},
 			orderQty:           250,
-			expectedAllocation: map[int]int{100: 3}, // Should deduplicate and use 3 packs
-			expectedSurplus:    50,
+			expectedAllocation: map[int]int{100: 3}, // Need 3 packs to exceed order
+			expectedSurplus:    50,                  // 300 - 250 = 50
+		},
+		{
+			name:               "Canonical example – 501 order (spec)",
+			packSizes:          []int{250, 500, 1000},
+			orderQty:           501,
+			expectedAllocation: map[int]int{500: 1, 250: 1}, // 751 total, surplus 249
+			expectedSurplus:    249,
+		},
+		{
+			name:               "Order not divisible by GCD (must overshoot)",
+			packSizes:          []int{4, 6},
+			orderQty:           7,
+			expectedAllocation: map[int]int{4: 2}, // 8 total
+			expectedSurplus:    1,
+		},
+		{
+			name:               "Duplicate & unsorted pack sizes",
+			packSizes:          []int{1000, 250, 250, 500},
+			orderQty:           750,
+			expectedAllocation: map[int]int{500: 1, 250: 1}, // 0 surplus
+			expectedSurplus:    0,
+		},
+		{
+			name:               "Tie on surplus, choose fewer packs",
+			packSizes:          []int{3, 4},
+			orderQty:           12,
+			expectedAllocation: map[int]int{4: 3}, // {3:4} is same surplus but 4 packs
+			expectedSurplus:    0,
+		},
+		{
+			name:               "Size-1 pack present – huge order stress",
+			packSizes:          []int{1, 1000},
+			orderQty:           12345,
+			expectedAllocation: map[int]int{1000: 12, 1: 345}, // exact fit
+			expectedSurplus:    0,
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			// Create domain entities
 			packSizes, err := entity.NewPackSizes(test.packSizes)
 			require.NoError(t, err, "Failed to create pack sizes")
 
 			orderQuantity, err := entity.NewOrderQuantity(test.orderQty)
 			require.NoError(t, err, "Failed to create order quantity")
 
-			// Execute calculation
 			result := calculator.CalculateOptimalPacks(packSizes, orderQuantity)
 			require.NotNil(t, result, "Result should not be nil")
 
-			// Verify allocation
 			actualAllocation := result.Allocation.GetAllocation()
 			assert.Equal(t, test.expectedAllocation, actualAllocation,
 				"Pack allocation mismatch for test: %s", test.name)
 
-			// Verify surplus
 			assert.Equal(t, test.expectedSurplus, result.Surplus,
 				"Surplus mismatch for test: %s", test.name)
 
-			// Additional business rule verifications
 			if !result.Allocation.IsEmpty() {
-				// Verify total items >= order quantity (Rule R1 - only whole packs)
 				totalItems := result.Allocation.TotalItems()
 				assert.GreaterOrEqual(t, totalItems, test.orderQty,
 					"Total items should be >= order quantity (whole packs only)")
 
-				// Verify surplus calculation
 				expectedSurplusFromTotal := totalItems - test.orderQty
 				assert.Equal(t, expectedSurplusFromTotal, result.Surplus,
 					"Surplus should equal total items minus order quantity")
