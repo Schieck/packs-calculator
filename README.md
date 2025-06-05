@@ -1,4 +1,5 @@
 # Packs Calculator
+<img width="1418" alt="image" src="https://github.com/user-attachments/assets/68899617-4d23-40e2-8044-bf67dca8fd1c" />
 
 [packs-calculator-live-demo.webm](https://github.com/user-attachments/assets/1f94e8c6-0ad6-4136-bc0b-3b724b95c09f)
 
