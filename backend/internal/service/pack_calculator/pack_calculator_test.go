@@ -9,6 +9,11 @@ import (
 	"github.com/Schieck/packs-calculator/internal/domain/entity"
 )
 
+func createPackSizes(rawSizes []int) (*entity.PackSizes, error) {
+	processor := NewPackSizeProcessorService()
+	return processor.ProcessPackSizes(rawSizes)
+}
+
 func TestPackCalculatorService_NewPackCalculatorService(t *testing.T) {
 	service := NewPackCalculatorService()
 	assert.NotNil(t, service)
@@ -19,7 +24,7 @@ func TestPackCalculatorService_CalculateOptimalPacks_EdgeCases(t *testing.T) {
 	service := NewPackCalculatorService()
 
 	t.Run("Zero order quantity", func(t *testing.T) {
-		packSizes, err := entity.NewPackSizes([]int{100, 250, 500})
+		packSizes, err := createPackSizes([]int{100, 250, 500})
 		require.NoError(t, err)
 
 		orderQuantity, err := entity.NewOrderQuantity(0)
@@ -34,7 +39,7 @@ func TestPackCalculatorService_CalculateOptimalPacks_EdgeCases(t *testing.T) {
 	})
 
 	t.Run("Empty pack sizes", func(t *testing.T) {
-		packSizes, err := entity.NewPackSizes([]int{})
+		packSizes, err := createPackSizes([]int{})
 		require.NoError(t, err)
 
 		orderQuantity, err := entity.NewOrderQuantity(100)
@@ -49,7 +54,7 @@ func TestPackCalculatorService_CalculateOptimalPacks_EdgeCases(t *testing.T) {
 	})
 
 	t.Run("Both zero order and empty packs", func(t *testing.T) {
-		packSizes, err := entity.NewPackSizes([]int{})
+		packSizes, err := createPackSizes([]int{})
 		require.NoError(t, err)
 
 		orderQuantity, err := entity.NewOrderQuantity(0)
@@ -68,7 +73,7 @@ func TestPackCalculatorService_CalculateOptimalPacks_ValidScenarios(t *testing.T
 	service := NewPackCalculatorService()
 
 	t.Run("Exact match scenario", func(t *testing.T) {
-		packSizes, err := entity.NewPackSizes([]int{250, 500})
+		packSizes, err := createPackSizes([]int{250, 500})
 		require.NoError(t, err)
 
 		orderQuantity, err := entity.NewOrderQuantity(750)
@@ -84,7 +89,7 @@ func TestPackCalculatorService_CalculateOptimalPacks_ValidScenarios(t *testing.T
 	})
 
 	t.Run("Minimal surplus scenario", func(t *testing.T) {
-		packSizes, err := entity.NewPackSizes([]int{250, 500})
+		packSizes, err := createPackSizes([]int{250, 500})
 		require.NoError(t, err)
 
 		orderQuantity, err := entity.NewOrderQuantity(251)

@@ -1,4 +1,4 @@
-import type { CalculationResult } from './types';
+import type { CalculationResult, PackConfiguration, CreatePackConfigurationRequest, UpdatePackConfigurationRequest } from './types';
 
 export interface CalculateRequest {
     items: number;
@@ -20,13 +20,14 @@ export interface AuthResponse {
     token: string;
 }
 
+// TODO: Add a proper API service, separated concerns and with error handling and caching
+
 class ApiService {
     private baseUrl: string;
     private cachedToken: string | null = null;
     private tokenExpiryTime: number | null = null;
 
     constructor() {
-        // In production, this would be from environment variables
         this.baseUrl = 'http://localhost:8080/api/v1';
     }
 
@@ -158,6 +159,139 @@ class ApiService {
             localStorage.setItem(this.PACK_SIZES_KEY, JSON.stringify(sizes));
         } catch (error) {
             console.error('Failed to save pack sizes:', error);
+        }
+    }
+
+    // Pack Configuration API Methods
+    async getAllPackConfigurations(): Promise<PackConfiguration[]> {
+        try {
+            const token = await this.getAuthToken();
+            const response = await fetch(`${this.baseUrl}/pack-configurations`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch pack configurations: ${response.status}`);
+            }
+
+            const data = await response.json();
+            return data.configurations || [];
+        } catch (error) {
+            console.error('Error fetching pack configurations:', error);
+            throw error;
+        }
+    }
+
+    async getDefaultPackConfiguration(): Promise<PackConfiguration | null> {
+        try {
+            const token = await this.getAuthToken();
+            const response = await fetch(`${this.baseUrl}/pack-configurations/default`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+            });
+
+            if (!response.ok) {
+                if (response.status === 404) {
+                    return null; // No default configuration exists
+                }
+                throw new Error(`Failed to fetch default pack configuration: ${response.status}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Error fetching default pack configuration:', error);
+            throw error;
+        }
+    }
+
+    async createPackConfiguration(request: CreatePackConfigurationRequest): Promise<PackConfiguration> {
+        try {
+            const token = await this.getAuthToken();
+            const response = await fetch(`${this.baseUrl}/pack-configurations`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(request),
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to create pack configuration: ${response.status}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Error creating pack configuration:', error);
+            throw error;
+        }
+    }
+
+    async updatePackConfiguration(id: number, request: UpdatePackConfigurationRequest): Promise<PackConfiguration> {
+        try {
+            const token = await this.getAuthToken();
+            const response = await fetch(`${this.baseUrl}/pack-configurations/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(request),
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to update pack configuration: ${response.status}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Error updating pack configuration:', error);
+            throw error;
+        }
+    }
+
+    async deletePackConfiguration(id: number): Promise<void> {
+        try {
+            const token = await this.getAuthToken();
+            const response = await fetch(`${this.baseUrl}/pack-configurations/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to delete pack configuration: ${response.status}`);
+            }
+        } catch (error) {
+            console.error('Error deleting pack configuration:', error);
+            throw error;
+        }
+    }
+
+    async setDefaultPackConfiguration(id: number): Promise<PackConfiguration> {
+        try {
+            const token = await this.getAuthToken();
+            const response = await fetch(`${this.baseUrl}/pack-configurations/${id}/default`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to set default pack configuration: ${response.status}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Error setting default pack configuration:', error);
+            throw error;
         }
     }
 }

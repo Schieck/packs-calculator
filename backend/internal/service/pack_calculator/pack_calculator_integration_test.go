@@ -9,6 +9,11 @@ import (
 	"github.com/Schieck/packs-calculator/internal/domain/entity"
 )
 
+func createPackSizesIntegration(rawSizes []int) (*entity.PackSizes, error) {
+	processor := NewPackSizeProcessorService()
+	return processor.ProcessPackSizes(rawSizes)
+}
+
 type testCase struct {
 	name               string
 	packSizes          []int
@@ -153,7 +158,7 @@ func TestPackCalculator_CalculateOptimalPacks(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			packSizes, err := entity.NewPackSizes(test.packSizes)
+			packSizes, err := createPackSizesIntegration(test.packSizes)
 			require.NoError(t, err, "Failed to create pack sizes")
 
 			orderQuantity, err := entity.NewOrderQuantity(test.orderQty)
@@ -183,9 +188,11 @@ func TestPackCalculator_CalculateOptimalPacks(t *testing.T) {
 }
 
 func TestPackSizes_Creation(t *testing.T) {
+	processor := NewPackSizeProcessorService()
+
 	t.Run("Valid pack sizes", func(t *testing.T) {
 		sizes := []int{100, 250, 500}
-		packSizes, err := entity.NewPackSizes(sizes)
+		packSizes, err := processor.ProcessPackSizes(sizes)
 
 		assert.NoError(t, err)
 		assert.False(t, packSizes.IsEmpty())
@@ -195,7 +202,7 @@ func TestPackSizes_Creation(t *testing.T) {
 
 	t.Run("Empty pack sizes allowed", func(t *testing.T) {
 		sizes := []int{}
-		packSizes, err := entity.NewPackSizes(sizes)
+		packSizes, err := processor.ProcessPackSizes(sizes)
 
 		assert.NoError(t, err)
 		assert.True(t, packSizes.IsEmpty())
@@ -203,7 +210,7 @@ func TestPackSizes_Creation(t *testing.T) {
 
 	t.Run("Invalid pack sizes should error", func(t *testing.T) {
 		sizes := []int{100, -50, 250}
-		packSizes, err := entity.NewPackSizes(sizes)
+		packSizes, err := processor.ProcessPackSizes(sizes)
 
 		assert.Error(t, err)
 		assert.Nil(t, packSizes)

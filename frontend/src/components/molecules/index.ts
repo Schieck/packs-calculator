@@ -5,4 +5,5 @@ export { PerformanceInfo } from './PerformanceInfo';
 export { ActionButtons } from './ActionButtons';
 export { PackSizeList } from './PackSizeList';
 export { AddPackSizeForm } from './AddPackSizeForm';
-export { BulkActions } from './BulkActions'; 
+export { BulkActions } from './BulkActions';
+export { PackConfigurationPresets } from './PackConfigurationPresets'; 

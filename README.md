@@ -27,52 +27,44 @@ backend/
     └── middleware/      # HTTP middleware
 ```
 
-#### Backend Technology Stack
-
-- **Language**: Go 1.24.3
-- **Framework**: Gin
-- **Database**: PostgreSQL 16
-- **Authentication**: JWT
-- **Documentation**: Swagger/OpenAPI
-- **Testing**: Testify
-- **Containerization**: Docker
-
 ### Frontend Architecture
 
-The frontend is a modern React application with a component-based architecture:
+The frontend is a modern React application built with TypeScript and following Atomic Design principles:
 
 ```
 frontend/
 ├── src/
-│   ├── components/      # React components
-│   │   ├── ui/          # Reusable UI components (shadcn/ui)
-│   │   ├── OrderCalculator.tsx    # Main calculator interface
-│   │   ├── PackSizeManager.tsx    # Pack size management
-│   │   └── ErrorBoundary.tsx      # Error handling
-│   ├── lib/             # Utilities and store
-│   └── assets/          # Static assets
-├── public/              # Public assets
-└── Docker files         # Containerization
+│   ├── components/           # Component library (Atomic Design)
+│   │   ├── atoms/           # Basic UI components
+│   │   ├── molecules/       # Composite components
+│   │   ├── organisms/       # Complex feature components
+│   │   ├── ui/             # Shadcn/ui base components
+│   │   ├── ErrorBoundary.tsx
+│   │   └── TooltipProvider.tsx
+│   ├── lib/                # Core utilities and logic
+│   │   ├── store.ts        # Zustand state management
+│   │   ├── api.ts          # API client and endpoints
+│   │   ├── schemas.ts      # Zod validation schemas
+│   │   ├── types.ts        # TypeScript definitions
+│   │   ├── utils.ts        # Helper functions
+│   │   └── hooks/          # Custom React hooks
+│   ├── App.tsx             # Main application
+│   └── main.tsx           # Entry point
+├── public/                 # Static assets
+├── Dockerfile             # Container configuration
+├── nginx.conf            # Production server config
+└── package.json          # Dependencies and scripts
 ```
-
-#### Frontend Technology Stack
-
-- **Framework**: React 19 with TypeScript
-- **Build Tool**: Vite
-- **Styling**: Tailwind v4
-- **UI Components**: shadcn/ui with Radix UI primitives
-- **State Management**: Zustand
-- **Form Handling**: React Hook Form with Zod validation
-- **Icons**: Lucide React
-- **Package Manager**: pnpm
 
 ## Getting Started
 
 ### Prerequisites
 
 - **Docker Desktop**: Latest version with Docker Compose
-- **Go**: Version 1.24.3+ (for local development)
+- **Go**: Version 1.24.3+
 - **Make**: For running automation commands
+- **Node**: Version v24.1.0+
+- **pnpm**: For the Frontend app
 
 ### Quick Setup
 
@@ -132,6 +124,15 @@ make clean          # Clean build artifacts
 
 ### Pack Calculator
 - `POST /api/v1/calculate` - Calculate optimal packs
+
+### Pack Configuration Management
+- `GET /api/v1/pack-configurations` - Get all pack configurations
+- `GET /api/v1/pack-configurations/:id` - Get pack configuration by ID
+- `GET /api/v1/pack-configurations/default` - Get default pack configuration
+- `POST /api/v1/pack-configurations` - Create new pack configuration
+- `PUT /api/v1/pack-configurations/:id` - Update pack configuration
+- `DELETE /api/v1/pack-configurations/:id` - Delete pack configuration
+- `PATCH /api/v1/pack-configurations/:id/default` - Set pack configuration as default
 
 ### System
 - `GET /api/v1/health` - Health check
@@ -229,6 +230,60 @@ make test
 # Run specific module tests
 cd backend && go test -v ./internal/service/pack_calculator
 ```
+
+## Next Steps
+
+### **Product & User Experience**
+- **User Research & Analytics**: Conduct user interviews to understand real-world pack calculation scenarios
+- **Advanced Calculator Features**:
+  - Bulk order processing with CSV import/export
+  - Multi-item calculations with different pack size configurations
+  - Cost optimization mode (factor in pack pricing)
+  - Inventory management integration
+- **User Preferences**: Save user-specific default pack configurations and calculation history
+- **Reporting & Analytics**: Generate calculation reports, usage statistics, and optimization insights
+
+### **Technical Enhancements**
+- **CI/CD Pipeline**: Automated testing, building, and deployment with GitHub Actions
+- **Enhanced Testing**:
+  - Increase test coverage to 90%+
+  - Add integration tests for API endpoints
+  - Implement E2E testing with Playwright
+  - Performance benchmarking for large calculations
+- **Frontend Architecture**:
+  - Implement proper error boundaries and loading states
+  - Add comprehensive component testing with Testing Library
+  - Optimize bundle size and implement code splitting
+  - Add PWA capabilities for offline usage
+
+### **Security & Performance**
+- **Authentication & Authorization**:
+  - User registration and management system
+  - Role-based access control (RBAC)
+  - OAuth integration (Google, GitHub)
+- **Performance Optimization**:
+  - Implement Redis caching for frequent calculations
+  - Add request rate limiting and API throttling
+  - Database integration for persistent pack configurations
+  - Optimize algorithm for very large numbers (10M+ items)
+
+### **Infrastructure & Scalability**
+- **Production Deployment**:
+  - Kubernetes deployment manifests
+  - Auto-scaling configurations
+  - Load balancing and health checks
+  - Multi-environment setup (dev/staging/prod)
+- **Monitoring & Observability**:
+  - Application metrics with Prometheus
+  - Distributed tracing with Jaeger
+  - Error tracking with Sentry
+  - Performance monitoring and alerting
+
+### **Business Features**
+- **Multi-tenancy**: Support for multiple organizations with isolated data
+- **API Management**: Rate limiting, API keys, usage analytics
+- **Data Export**: Integration with popular business tools (Excel, Google Sheets)
+- **Mobile App**: React Native app for on-the-go calculations
 
 ## 🤝 Contributing
 

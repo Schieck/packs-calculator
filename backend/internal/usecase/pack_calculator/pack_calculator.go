@@ -8,14 +8,16 @@ import (
 )
 
 type CalculatePacksUseCase struct {
-	calculator entity.PackCalculator
-	logger     *slog.Logger
+	calculator    entity.PackCalculator
+	packProcessor entity.PackSizeProcessor
+	logger        *slog.Logger
 }
 
-func NewCalculatePacksUseCase(calculator entity.PackCalculator, logger *slog.Logger) *CalculatePacksUseCase {
+func NewCalculatePacksUseCase(calculator entity.PackCalculator, packProcessor entity.PackSizeProcessor, logger *slog.Logger) *CalculatePacksUseCase {
 	return &CalculatePacksUseCase{
-		calculator: calculator,
-		logger:     logger,
+		calculator:    calculator,
+		packProcessor: packProcessor,
+		logger:        logger,
 	}
 }
 
@@ -29,9 +31,9 @@ func (uc *CalculatePacksUseCase) Execute(packSizes []int, orderQuantity int) (*e
 		return nil, err
 	}
 
-	packSizesEntity, err := entity.NewPackSizes(packSizes)
+	packSizesEntity, err := uc.packProcessor.ProcessPackSizes(packSizes)
 	if err != nil {
-		uc.logger.Error("Failed to create pack sizes entity", "error", err)
+		uc.logger.Error("Failed to process pack sizes", "error", err)
 		return nil, err
 	}
 

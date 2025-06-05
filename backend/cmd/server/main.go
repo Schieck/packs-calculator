@@ -15,14 +15,17 @@ import (
 
 	"github.com/Schieck/packs-calculator/internal/adapter/config"
 	httpAdapter "github.com/Schieck/packs-calculator/internal/adapter/http"
+	"github.com/Schieck/packs-calculator/internal/adapter/repository"
 
 	authService "github.com/Schieck/packs-calculator/internal/service/auth"
 	healthService "github.com/Schieck/packs-calculator/internal/service/health"
 	packCalculatorService "github.com/Schieck/packs-calculator/internal/service/pack_calculator"
+	packConfigurationService "github.com/Schieck/packs-calculator/internal/service/pack_configuration"
 
 	authUseCase "github.com/Schieck/packs-calculator/internal/usecase/auth"
 	healthUseCase "github.com/Schieck/packs-calculator/internal/usecase/health"
 	packCalculatorUseCase "github.com/Schieck/packs-calculator/internal/usecase/pack_calculator"
+	packConfigurationUseCase "github.com/Schieck/packs-calculator/internal/usecase/pack_configuration"
 
 	"github.com/Schieck/packs-calculator/pkg/db"
 	"github.com/Schieck/packs-calculator/pkg/middleware"
@@ -58,21 +61,45 @@ func main() {
 	}
 	defer database.Close()
 
+	// Initialize repositories
+	packConfigRepo := repository.NewPackConfigurationRepository(database.DB)
+
 	// Initialize services
 	authSvc := authService.NewAuthServiceWithDefaults(cfg.Auth.JWTSecret, cfg.Auth.AuthSecret)
 	healthSvc := healthService.NewHealthService(database, "1.0.0")
 	packCalculatorSvc := packCalculatorService.NewPackCalculatorService()
+	packSizeProcessorSvc := packCalculatorService.NewPackSizeProcessorService()
+	packConfigSvc := packConfigurationService.NewPackConfigurationService(packConfigRepo)
 
 	// Initialize use cases
 	authenticateUseCase := authUseCase.NewAuthenticateUseCase(authSvc, logger)
 	validateTokenUseCase := authUseCase.NewValidateTokenUseCase(authSvc, logger)
 	healthCheckUseCase := healthUseCase.NewHealthUseCase(healthSvc, logger)
-	calculatePacksUseCase := packCalculatorUseCase.NewCalculatePacksUseCase(packCalculatorSvc, logger)
+	calculatePacksUseCase := packCalculatorUseCase.NewCalculatePacksUseCase(packCalculatorSvc, packSizeProcessorSvc, logger)
+
+	// Pack configuration use cases
+	getAllConfigurationsUseCase := packConfigurationUseCase.NewGetAllConfigurationsUseCase(packConfigSvc, logger)
+	getConfigurationByIDUseCase := packConfigurationUseCase.NewGetConfigurationByIDUseCase(packConfigSvc, logger)
+	getDefaultConfigurationUseCase := packConfigurationUseCase.NewGetDefaultConfigurationUseCase(packConfigSvc, logger)
+	createConfigurationUseCase := packConfigurationUseCase.NewCreateConfigurationUseCase(packConfigSvc, logger)
+	updateConfigurationUseCase := packConfigurationUseCase.NewUpdateConfigurationUseCase(packConfigSvc, logger)
+	deleteConfigurationUseCase := packConfigurationUseCase.NewDeleteConfigurationUseCase(packConfigSvc, logger)
+	setDefaultConfigurationUseCase := packConfigurationUseCase.NewSetDefaultConfigurationUseCase(packConfigSvc, logger)
 
 	// Initialize HTTP handlers
 	authHandler := httpAdapter.NewAuthHandler(authenticateUseCase, logger)
 	healthHandler := httpAdapter.NewHealthHandler(healthCheckUseCase, logger)
 	packCalculatorHandler := httpAdapter.NewCalculatorHandler(calculatePacksUseCase, logger)
+	packConfigHandler := httpAdapter.NewPackConfigurationHandler(
+		getAllConfigurationsUseCase,
+		getConfigurationByIDUseCase,
+		getDefaultConfigurationUseCase,
+		createConfigurationUseCase,
+		updateConfigurationUseCase,
+		deleteConfigurationUseCase,
+		setDefaultConfigurationUseCase,
+		logger,
+	)
 
 	// Setup Gin
 	if gin.Mode() == gin.ReleaseMode {
@@ -103,6 +130,14 @@ func main() {
 	protected.Use(middleware.JWT(validateTokenUseCase))
 	{
 		protected.POST("/calculate", packCalculatorHandler.Calculate)
+
+		protected.GET("/pack-configurations", packConfigHandler.GetAllConfigurations)
+		protected.GET("/pack-configurations/default", packConfigHandler.GetDefaultConfiguration)
+		protected.GET("/pack-configurations/:id", packConfigHandler.GetConfigurationByID)
+		protected.POST("/pack-configurations", packConfigHandler.CreateConfiguration)
+		protected.PUT("/pack-configurations/:id", packConfigHandler.UpdateConfiguration)
+		protected.DELETE("/pack-configurations/:id", packConfigHandler.DeleteConfiguration)
+		protected.PATCH("/pack-configurations/:id/default", packConfigHandler.SetDefaultConfiguration)
 	}
 
 	// Setup HTTP server

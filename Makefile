@@ -37,7 +37,7 @@ docker-down:
 
 docker-dev: ## Switch back to full containerized development
 	@echo "🐳 Starting backend container..."
-	docker compose up -d backend
+	docker compose up -d backend frontend
 	@echo "✅ Switched to containerized development!"
 	@echo "Backend: http://localhost:8080"
 

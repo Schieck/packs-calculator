@@ -2,7 +2,6 @@ package entity
 
 import (
 	"fmt"
-	"sort"
 )
 
 type PackSizes struct {
@@ -10,20 +9,17 @@ type PackSizes struct {
 	index map[int]struct{}
 }
 
-func NewPackSizes(raw []int) (*PackSizes, error) {
-	uniq := make(map[int]struct{}, len(raw))
-	out := make([]int, 0, len(raw))
-	for _, v := range raw {
-		if v <= 0 {
-			return nil, fmt.Errorf("pack size must be >0, got %d", v)
-		}
-		if _, dup := uniq[v]; !dup {
-			uniq[v] = struct{}{}
-			out = append(out, v)
-		}
+func NewPackSizes(processedSizes []int) *PackSizes {
+	if len(processedSizes) == 0 {
+		return &PackSizes{sizes: []int{}, index: make(map[int]struct{})}
 	}
-	sort.Ints(out)
-	return &PackSizes{sizes: out, index: uniq}, nil
+
+	index := make(map[int]struct{}, len(processedSizes))
+	for _, size := range processedSizes {
+		index[size] = struct{}{}
+	}
+
+	return &PackSizes{sizes: processedSizes, index: index}
 }
 
 func (ps *PackSizes) Slice() []int { return ps.sizes }
@@ -120,4 +116,9 @@ func (cr *CalculationResult) IsUnfulfillable() bool {
 
 type PackCalculator interface {
 	CalculateOptimalPacks(packSizes *PackSizes, orderQuantity *OrderQuantity) *CalculationResult
+}
+
+// PackSizeProcessor handles business logic for processing raw pack size input
+type PackSizeProcessor interface {
+	ProcessPackSizes(rawSizes []int) (*PackSizes, error)
 }

@@ -14,7 +14,8 @@ import (
 func TestCalculatePacksUseCase_Execute(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}))
 	calculator := packCalculatorService.NewPackCalculatorService()
-	useCase := NewCalculatePacksUseCase(calculator, logger)
+	packProcessor := packCalculatorService.NewPackSizeProcessorService()
+	useCase := NewCalculatePacksUseCase(calculator, packProcessor, logger)
 
 	tests := []struct {
 		name               string
@@ -150,7 +151,8 @@ func TestCalculatePacksUseCase_Execute(t *testing.T) {
 func TestCalculatePacksUseCase_ValidateInput(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}))
 	calculator := packCalculatorService.NewPackCalculatorService()
-	useCase := NewCalculatePacksUseCase(calculator, logger)
+	packProcessor := packCalculatorService.NewPackSizeProcessorService()
+	useCase := NewCalculatePacksUseCase(calculator, packProcessor, logger)
 
 	t.Run("Valid input should not error", func(t *testing.T) {
 		err := useCase.validateInput([]int{100, 250, 500}, 100)

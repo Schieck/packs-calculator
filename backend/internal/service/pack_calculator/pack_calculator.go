@@ -1,8 +1,12 @@
 package service
 
 import (
+	"fmt"
+
 	"github.com/Schieck/packs-calculator/internal/domain/entity"
 )
+
+type PackSizeProcessorService struct{}
 
 // PackCalculatorService implements the core pack optimization algorithm.
 //
@@ -22,6 +26,25 @@ import (
 // - Why chosen: optimal for this problem size (handles 500k orders in <10ms)
 // - Object pooling prevents GC pressure in high-throughput scenarios
 type PackCalculatorService struct{}
+
+func NewPackSizeProcessorService() entity.PackSizeProcessor {
+	return &PackSizeProcessorService{}
+}
+
+func (s *PackSizeProcessorService) ProcessPackSizes(rawSizes []int) (*entity.PackSizes, error) {
+	if len(rawSizes) == 0 {
+		return entity.NewPackSizes([]int{}), nil
+	}
+
+	for _, size := range rawSizes {
+		if size <= 0 {
+			return nil, fmt.Errorf("pack size must be >0, got %d", size)
+		}
+	}
+
+	processedSizes := DedupeAndSort(rawSizes)
+	return entity.NewPackSizes(processedSizes), nil
+}
 
 func NewPackCalculatorService() entity.PackCalculator {
 	return &PackCalculatorService{}

@@ -38,5 +38,6 @@ build-errors.log
 
 # Build artifacts
 backend/app
+backend/server
 backend/docs/
 backend/tmp/

@@ -8,6 +8,7 @@ import { StatusAlert } from '@/components/atoms/StatusAlert';
 import { PackSizeList } from '@/components/molecules/PackSizeList';
 import { AddPackSizeForm } from '@/components/molecules/AddPackSizeForm';
 import { BulkActions } from '@/components/molecules/BulkActions';
+import { PackConfigurationPresets } from '@/components/molecules/PackConfigurationPresets';
 
 import { usePackSizesStore } from '@/lib/store';
 import { type AddPackSizeFormData } from '@/lib/schemas';
@@ -53,6 +54,12 @@ export function PackSizeManager() {
         clearAll();
     };
 
+    const handleConfigurationSelect = (packSizes: number[]) => {
+        setError(null);
+        clearAll();
+        packSizes.forEach(size => addPackSize(size));
+    };
+
     return (
         <Card className="w-full">
             <CardHeader>
@@ -62,6 +69,12 @@ export function PackSizeManager() {
                 </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
+                {/* Pack Configuration Presets */}
+                <PackConfigurationPresets
+                    currentPackSizes={packSizes}
+                    onConfigurationSelect={handleConfigurationSelect}
+                />
+
                 {/* Error Display */}
                 {error && (
                     <StatusAlert variant="destructive">
