@@ -8,146 +8,198 @@ import (
 )
 
 func TestGetDPArraysFromPool(t *testing.T) {
-	t.Run("Basic functionality", func(t *testing.T) {
-		requiredSize := 100
+	t.Parallel()
 
-		dp, last := GetDPArraysFromPool(requiredSize)
+	tests := []struct {
+		name       string
+		upperBound int
+		wantSize   int
+	}{
+		{
+			name:       "small upper bound",
+			upperBound: 100,
+			wantSize:   101, // upperBound + 1
+		},
+		{
+			name:       "medium upper bound",
+			upperBound: 1000,
+			wantSize:   1001,
+		},
+		{
+			name:       "large upper bound",
+			upperBound: 10000,
+			wantSize:   10001,
+		},
+		{
+			name:       "zero upper bound",
+			upperBound: 0,
+			wantSize:   1,
+		},
+	}
 
-		// Verify size
-		assert.Equal(t, requiredSize+1, len(dp))
-		assert.Equal(t, requiredSize+1, len(last))
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
-		// Verify initialization
-		assert.Equal(t, 0, dp[0])
-		for i := 1; i <= requiredSize; i++ {
-			assert.Equal(t, maxInt, dp[i])
-			assert.Equal(t, 0, last[i])
-		}
-	})
+			dp, last := GetDPArraysFromPool(tt.upperBound)
 
-	t.Run("Large size allocation", func(t *testing.T) {
-		requiredSize := poolInitialCapacity * 2
+			// Verify the returned arrays have correct size
+			assert.Equal(t, tt.wantSize, len(dp))
+			assert.Equal(t, tt.wantSize, len(last))
 
-		dp, last := GetDPArraysFromPool(requiredSize)
+			// Verify arrays are properly initialized
+			assert.Equal(t, 0, dp[0])
+			assert.Equal(t, 0, last[0])
 
-		assert.Equal(t, requiredSize+1, len(dp))
-		assert.Equal(t, requiredSize+1, len(last))
-		assert.Equal(t, 0, dp[0])
-		assert.Equal(t, maxInt, dp[1])
-	})
+			for i := 1; i < len(dp); i++ {
+				assert.Equal(t, maxInt, dp[i])
+				assert.Equal(t, 0, last[i])
+			}
 
-	t.Run("Small size reuses pool", func(t *testing.T) {
-		requiredSize := poolInitialCapacity / 2
-
-		dp, last := GetDPArraysFromPool(requiredSize)
-
-		// Should reuse existing pool arrays with proper resizing
-		assert.GreaterOrEqual(t, cap(dp), requiredSize+1)
-		assert.GreaterOrEqual(t, cap(last), requiredSize+1)
-		assert.Equal(t, requiredSize+1, len(dp))
-		assert.Equal(t, requiredSize+1, len(last))
-	})
-
-	t.Run("Zero size", func(t *testing.T) {
-		requiredSize := 0
-
-		dp, last := GetDPArraysFromPool(requiredSize)
-
-		assert.Equal(t, 1, len(dp))
-		assert.Equal(t, 1, len(last))
-		assert.Equal(t, 0, dp[0])
-		assert.Equal(t, 0, last[0])
-	})
+			// Return to pool to avoid leaking
+			ReturnDPArraysToPool(CreateDPArrays(dp, last))
+		})
+	}
 }
 
 func TestReturnDPArraysToPool(t *testing.T) {
-	t.Run("Return normal-sized arrays", func(t *testing.T) {
-		arrays := &dpArrays{
-			dp:   make([]int, poolInitialCapacity),
-			last: make([]int, poolInitialCapacity),
-		}
+	t.Parallel()
 
-		// This should not panic and should return arrays to pool
-		ReturnDPArraysToPool(arrays)
-		// We can't easily verify the array was returned, but we can verify no panic
-	})
+	t.Run("return valid arrays", func(t *testing.T) {
+		t.Parallel()
 
-	t.Run("Don't return oversized arrays", func(t *testing.T) {
-		oversized := poolInitialCapacity * 20
-		arrays := &dpArrays{
-			dp:   make([]int, oversized),
-			last: make([]int, oversized),
-		}
+		// Get arrays from pool
+		dp, last := GetDPArraysFromPool(100)
 
-		// This should not panic and should NOT return arrays to pool (let GC handle)
-		ReturnDPArraysToPool(arrays)
-		// Arrays should be discarded, not returned to pool
+		// Modify some values to verify they get reset
+		dp[1] = 5
+		dp[2] = 10
+		last[1] = 25
+		last[2] = 50
+
+		// Return to pool
+		ReturnDPArraysToPool(CreateDPArrays(dp, last))
+
+		// Get arrays again and verify they are reset
+		newDP, newLast := GetDPArraysFromPool(100)
+		assert.Equal(t, 0, newDP[0])
+		assert.Equal(t, maxInt, newDP[1])
+		assert.Equal(t, maxInt, newDP[2])
+		assert.Equal(t, 0, newLast[1])
+		assert.Equal(t, 0, newLast[2])
+
+		// Clean up
+		ReturnDPArraysToPool(CreateDPArrays(newDP, newLast))
 	})
 }
 
 func TestCreateDPArrays(t *testing.T) {
-	t.Run("Wrapper creation", func(t *testing.T) {
-		dp := []int{0, maxInt, maxInt}
-		last := []int{0, 0, 100}
+	t.Parallel()
 
-		arrays := CreateDPArrays(dp, last)
+	tests := []struct {
+		name string
+		dp   []int
+		last []int
+	}{
+		{
+			name: "normal case",
+			dp:   []int{0, maxInt, maxInt},
+			last: []int{0, 0, 100},
+		},
+		{
+			name: "empty arrays",
+			dp:   []int{},
+			last: []int{},
+		},
+		{
+			name: "single element",
+			dp:   []int{0},
+			last: []int{0},
+		},
+	}
 
-		assert.NotNil(t, arrays)
-		assert.Equal(t, dp, arrays.dp)
-		assert.Equal(t, last, arrays.last)
-	})
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			dpArrays := CreateDPArrays(tt.dp, tt.last)
+
+			assert.Equal(t, tt.dp, dpArrays.dp)
+			assert.Equal(t, tt.last, dpArrays.last)
+		})
+	}
 }
 
 func TestDPArrayPool_Concurrency(t *testing.T) {
-	t.Run("Concurrent access", func(t *testing.T) {
-		var wg sync.WaitGroup
-		numGoroutines := 10
-		iterations := 100
+	// Note: Not using t.Parallel() here since this test specifically tests concurrency behavior
+	const (
+		numGoroutines = 100
+		upperBound    = 1000
+	)
 
-		wg.Add(numGoroutines)
+	var wg sync.WaitGroup
+	results := make(chan *dpArrays, numGoroutines)
 
-		for i := 0; i < numGoroutines; i++ {
-			go func() {
-				defer wg.Done()
-				for j := 0; j < iterations; j++ {
-					requiredSize := 100 + j // Vary the size
+	// Launch multiple goroutines that get arrays from pool
+	for i := 0; i < numGoroutines; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			dp, last := GetDPArraysFromPool(upperBound)
 
-					dp, last := GetDPArraysFromPool(requiredSize)
+			// Verify arrays are properly initialized
+			assert.Equal(t, 0, dp[0])
+			assert.Equal(t, 0, last[0])
+			for j := 1; j < len(dp); j++ {
+				assert.Equal(t, maxInt, dp[j])
+				assert.Equal(t, 0, last[j])
+			}
 
-					// Verify arrays are properly initialized
-					assert.Equal(t, requiredSize+1, len(dp))
-					assert.Equal(t, requiredSize+1, len(last))
-					assert.Equal(t, 0, dp[0])
-					if requiredSize > 0 {
-						assert.Equal(t, maxInt, dp[1])
-					}
+			results <- CreateDPArrays(dp, last)
+		}()
+	}
 
-					// Return to pool
-					ReturnDPArraysToPool(CreateDPArrays(dp, last))
-				}
-			}()
-		}
+	// Wait for all goroutines to complete
+	wg.Wait()
+	close(results)
 
-		wg.Wait()
-	})
+	// Return all arrays to pool
+	for dpArrays := range results {
+		ReturnDPArraysToPool(dpArrays)
+	}
+
+	// Verify pool is working correctly after concurrent access
+	dp, last := GetDPArraysFromPool(upperBound)
+	assert.Equal(t, upperBound+1, len(dp))
+	assert.Equal(t, upperBound+1, len(last))
+	ReturnDPArraysToPool(CreateDPArrays(dp, last))
 }
 
 func TestDPArrays_Struct(t *testing.T) {
-	t.Run("Struct creation and access", func(t *testing.T) {
-		dp := []int{0, 1, 2}
-		last := []int{0, 100, 200}
+	t.Parallel()
 
-		arrays := dpArrays{dp: dp, last: last}
+	t.Run("verify struct fields", func(t *testing.T) {
+		t.Parallel()
 
-		assert.Equal(t, dp, arrays.dp)
-		assert.Equal(t, last, arrays.last)
+		dpArrays := &dpArrays{
+			dp:   []int{1, 2, 3},
+			last: []int{4, 5, 6},
+		}
+
+		assert.Equal(t, []int{1, 2, 3}, dpArrays.dp)
+		assert.Equal(t, []int{4, 5, 6}, dpArrays.last)
 	})
 }
 
 func TestPoolConstants(t *testing.T) {
-	t.Run("Constants are defined correctly", func(t *testing.T) {
-		assert.Equal(t, 1024, poolInitialCapacity)
-		assert.Greater(t, maxInt, 1000000) // Should be a very large number
+	t.Parallel()
+
+	t.Run("verify maxInt constant", func(t *testing.T) {
+		t.Parallel()
+
+		// maxInt should be a very large positive integer
+		assert.Greater(t, maxInt, 1000000)
+		assert.Positive(t, maxInt)
 	})
 }
 

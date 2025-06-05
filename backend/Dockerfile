@@ -1,5 +1,5 @@
 # Build stage
-FROM golang:1.24.3 AS builder
+FROM --platform=$BUILDPLATFORM golang:1.24.3 AS builder
 
 RUN apt-get update && apt-get install -y git ca-certificates tzdata && rm -rf /var/lib/apt/lists/*
 
@@ -15,17 +15,14 @@ COPY . .
 RUN go install github.com/swaggo/swag/cmd/swag@latest
 RUN swag init -g cmd/server/main.go -o ./docs
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
+ARG TARGETOS TARGETARCH
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build \
     -ldflags='-w -s -extldflags "-static"' \
     -a -installsuffix cgo \
     -o app cmd/server/main.go
 
-# Final stage
-FROM alpine:3.18
-
-RUN apk --no-cache add ca-certificates curl
-RUN addgroup -g 1001 -S appgroup && \
-    adduser -u 1001 -S appuser -G appgroup
+# Final stage - using distroless for better security (non-root user)
+FROM gcr.io/distroless/static:nonroot
 
 WORKDIR /app
 
@@ -33,13 +30,8 @@ COPY --from=builder /build/app .
 COPY --from=builder /build/migrations ./migrations
 COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
 
-RUN chown -R appuser:appgroup /app
-USER appuser
-
 EXPOSE 8080
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8080/health || exit 1
+# Health check omitted - should be handled by orchestrator (K8s, Docker Compose, etc.)
 
 CMD ["./app"] 

@@ -7,7 +7,10 @@ import (
 )
 
 func TestCalculate(t *testing.T) {
+	t.Parallel()
+
 	t.Run("Basic exact match", func(t *testing.T) {
+		t.Parallel()
 		packSizes := []int{250, 500}
 		orderQty := 750
 
@@ -19,6 +22,7 @@ func TestCalculate(t *testing.T) {
 	})
 
 	t.Run("Minimal surplus selection", func(t *testing.T) {
+		t.Parallel()
 		packSizes := []int{250, 500}
 		orderQty := 251
 
@@ -30,6 +34,7 @@ func TestCalculate(t *testing.T) {
 	})
 
 	t.Run("Prefer fewer packs with same surplus", func(t *testing.T) {
+		t.Parallel()
 		packSizes := []int{3, 4}
 		orderQty := 12
 
@@ -41,6 +46,7 @@ func TestCalculate(t *testing.T) {
 	})
 
 	t.Run("Zero order quantity", func(t *testing.T) {
+		t.Parallel()
 		packSizes := []int{100, 250}
 		orderQty := 0
 
@@ -52,6 +58,7 @@ func TestCalculate(t *testing.T) {
 	})
 
 	t.Run("Negative order quantity", func(t *testing.T) {
+		t.Parallel()
 		packSizes := []int{100, 250}
 		orderQty := -5
 
@@ -63,6 +70,7 @@ func TestCalculate(t *testing.T) {
 	})
 
 	t.Run("Empty pack sizes", func(t *testing.T) {
+		t.Parallel()
 		packSizes := []int{}
 		orderQty := 100
 
@@ -74,6 +82,7 @@ func TestCalculate(t *testing.T) {
 	})
 
 	t.Run("Single pack size", func(t *testing.T) {
+		t.Parallel()
 		packSizes := []int{100}
 		orderQty := 250
 
@@ -85,6 +94,7 @@ func TestCalculate(t *testing.T) {
 	})
 
 	t.Run("Large numbers performance test", func(t *testing.T) {
+		t.Parallel()
 		packSizes := []int{23, 31, 53}
 		orderQty := 1000
 
@@ -105,7 +115,10 @@ func TestCalculate(t *testing.T) {
 }
 
 func TestFindOptimalQuantity(t *testing.T) {
+	t.Parallel()
+
 	t.Run("Find minimum surplus", func(t *testing.T) {
+		t.Parallel()
 		// Mock DP array where dp[i] represents minimum packs to achieve quantity i
 		dp := []int{0, maxInt, maxInt, 1, 1, 2, 1, 2, 2, 1, 2} // indices 0-10
 		orderQty := 7
@@ -117,6 +130,7 @@ func TestFindOptimalQuantity(t *testing.T) {
 	})
 
 	t.Run("Prefer fewer packs when surplus is equal", func(t *testing.T) {
+		t.Parallel()
 		// dp[8] = 2 packs, dp[9] = 3 packs, both have same surplus relative to orderQty=7
 		dp := []int{0, maxInt, maxInt, maxInt, maxInt, maxInt, maxInt, maxInt, 2, 3, maxInt}
 		orderQty := 7
@@ -128,6 +142,7 @@ func TestFindOptimalQuantity(t *testing.T) {
 	})
 
 	t.Run("Early break for optimal solution", func(t *testing.T) {
+		t.Parallel()
 		// Perfect solution at exact quantity with 1 pack
 		dp := []int{0, maxInt, maxInt, maxInt, maxInt, maxInt, maxInt, 1, maxInt, maxInt, maxInt}
 		orderQty := 7
@@ -139,6 +154,7 @@ func TestFindOptimalQuantity(t *testing.T) {
 	})
 
 	t.Run("No feasible solution", func(t *testing.T) {
+		t.Parallel()
 		dp := []int{0, maxInt, maxInt, maxInt, maxInt, maxInt}
 		orderQty := 3
 		upper := 5
@@ -150,7 +166,10 @@ func TestFindOptimalQuantity(t *testing.T) {
 }
 
 func TestReconstructAllocation(t *testing.T) {
+	t.Parallel()
+
 	t.Run("Simple reconstruction", func(t *testing.T) {
+		t.Parallel()
 		// last[i] indicates which pack size was used to reach quantity i
 		// For bestQty=100, last[100] should contain the pack size used
 		last := make([]int, 101)
@@ -174,6 +193,7 @@ func TestReconstructAllocation(t *testing.T) {
 	})
 
 	t.Run("Empty reconstruction", func(t *testing.T) {
+		t.Parallel()
 		last := []int{0}
 		bestQty := 0
 
@@ -185,7 +205,10 @@ func TestReconstructAllocation(t *testing.T) {
 }
 
 func TestInitializeDPArrays(t *testing.T) {
+	t.Parallel()
+
 	t.Run("Proper initialization", func(t *testing.T) {
+		t.Parallel()
 		upper := 5
 
 		dp, last := InitializeDPArrays(upper)
@@ -202,6 +225,7 @@ func TestInitializeDPArrays(t *testing.T) {
 	})
 
 	t.Run("Zero upper bound", func(t *testing.T) {
+		t.Parallel()
 		upper := 0
 
 		dp, last := InitializeDPArrays(upper)

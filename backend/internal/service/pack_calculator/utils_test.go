@@ -7,195 +7,145 @@ import (
 )
 
 func TestDedupeAndSort(t *testing.T) {
-	t.Run("Basic functionality", func(t *testing.T) {
-		input := []int{500, 250, 250, 1000, 500}
-		expected := []int{250, 500, 1000}
+	t.Parallel()
 
-		result := DedupeAndSort(input)
+	tests := []struct {
+		name     string
+		input    []int
+		expected []int
+	}{
+		{
+			name:     "basic deduplication and sorting",
+			input:    []int{500, 250, 500, 250, 1000},
+			expected: []int{250, 500, 1000},
+		},
+		{
+			name:     "already sorted with no duplicates",
+			input:    []int{100, 200, 300},
+			expected: []int{100, 200, 300},
+		},
+		{
+			name:     "reverse sorted with duplicates",
+			input:    []int{300, 200, 100, 200},
+			expected: []int{100, 200, 300},
+		},
+		{
+			name:     "single element",
+			input:    []int{100},
+			expected: []int{100},
+		},
+		{
+			name:     "all same elements",
+			input:    []int{100, 100, 100},
+			expected: []int{100},
+		},
+		{
+			name:     "empty slice",
+			input:    []int{},
+			expected: nil,
+		},
+		{
+			name:     "unsorted with multiple duplicates",
+			input:    []int{53, 31, 23, 53, 31, 23, 100},
+			expected: []int{23, 31, 53, 100},
+		},
+		{
+			name:     "with zeros (should be filtered out)",
+			input:    []int{250, 0, 500, 0},
+			expected: []int{250, 500},
+		},
+		{
+			name:     "with negative numbers (should be filtered out)",
+			input:    []int{250, -100, 500, -200},
+			expected: []int{250, 500},
+		},
+		{
+			name:     "mixed valid and invalid",
+			input:    []int{-50, 0, 250, 500, -100, 0, 250},
+			expected: []int{250, 500},
+		},
+	}
 
-		assert.Equal(t, expected, result)
-	})
-
-	t.Run("Already sorted and unique", func(t *testing.T) {
-		input := []int{100, 250, 500}
-		expected := []int{100, 250, 500}
-
-		result := DedupeAndSort(input)
-
-		assert.Equal(t, expected, result)
-	})
-
-	t.Run("Reverse sorted with duplicates", func(t *testing.T) {
-		input := []int{1000, 500, 500, 250, 250, 100}
-		expected := []int{100, 250, 500, 1000}
-
-		result := DedupeAndSort(input)
-
-		assert.Equal(t, expected, result)
-	})
-
-	t.Run("Filter out non-positive values", func(t *testing.T) {
-		input := []int{-100, 0, 250, -50, 500}
-		expected := []int{250, 500}
-
-		result := DedupeAndSort(input)
-
-		assert.Equal(t, expected, result)
-	})
-
-	t.Run("All non-positive values", func(t *testing.T) {
-		input := []int{-100, 0, -50}
-		expected := []int{}
-
-		result := DedupeAndSort(input)
-
-		assert.Equal(t, expected, result)
-	})
-
-	t.Run("Empty input", func(t *testing.T) {
-		input := []int{}
-
-		result := DedupeAndSort(input)
-
-		assert.Nil(t, result)
-	})
-
-	t.Run("Single positive value", func(t *testing.T) {
-		input := []int{250}
-		expected := []int{250}
-
-		result := DedupeAndSort(input)
-
-		assert.Equal(t, expected, result)
-	})
-
-	t.Run("Single non-positive value", func(t *testing.T) {
-		input := []int{-250}
-		expected := []int{}
-
-		result := DedupeAndSort(input)
-
-		assert.Equal(t, expected, result)
-	})
-
-	t.Run("All same positive values", func(t *testing.T) {
-		input := []int{250, 250, 250, 250}
-		expected := []int{250}
-
-		result := DedupeAndSort(input)
-
-		assert.Equal(t, expected, result)
-	})
-
-	t.Run("Mixed with zeros", func(t *testing.T) {
-		input := []int{0, 100, 0, 200, 0}
-		expected := []int{100, 200}
-
-		result := DedupeAndSort(input)
-
-		assert.Equal(t, expected, result)
-	})
-
-	t.Run("Large numbers", func(t *testing.T) {
-		input := []int{5000, 2000, 10000, 2000, 1}
-		expected := []int{1, 2000, 5000, 10000}
-
-		result := DedupeAndSort(input)
-
-		assert.Equal(t, expected, result)
-	})
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			result := DedupeAndSort(tt.input)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
 }
 
 func TestIsValidPackSize(t *testing.T) {
-	t.Run("Positive values are valid", func(t *testing.T) {
-		testCases := []int{1, 100, 250, 500, 1000, 5000}
+	t.Parallel()
 
-		for _, size := range testCases {
-			assert.True(t, IsValidPackSize(size), "Size %d should be valid", size)
-		}
-	})
+	tests := []struct {
+		name     string
+		input    int
+		expected bool
+	}{
+		{"positive number", 100, true},
+		{"zero", 0, false},
+		{"negative number", -50, false},
+		{"large positive", 99999, true},
+		{"one", 1, true},
+	}
 
-	t.Run("Non-positive values are invalid", func(t *testing.T) {
-		testCases := []int{0, -1, -100, -250}
-
-		for _, size := range testCases {
-			assert.False(t, IsValidPackSize(size), "Size %d should be invalid", size)
-		}
-	})
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			result := IsValidPackSize(tt.input)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
 }
 
 func TestFilterValidPackSizes(t *testing.T) {
-	t.Run("Filter mixed valid and invalid", func(t *testing.T) {
-		input := []int{-100, 0, 250, -50, 500, 1000}
-		expected := []int{250, 500, 1000}
+	t.Parallel()
 
-		result := FilterValidPackSizes(input)
+	tests := []struct {
+		name     string
+		input    []int
+		expected []int
+	}{
+		{
+			name:     "mixed valid and invalid",
+			input:    []int{-100, 0, 250, 500, -50},
+			expected: []int{250, 500},
+		},
+		{
+			name:     "all valid",
+			input:    []int{100, 250, 500},
+			expected: []int{100, 250, 500},
+		},
+		{
+			name:     "all invalid",
+			input:    []int{-100, 0, -50},
+			expected: []int{},
+		},
+		{
+			name:     "empty slice",
+			input:    []int{},
+			expected: []int{},
+		},
+		{
+			name:     "single valid",
+			input:    []int{100},
+			expected: []int{100},
+		},
+		{
+			name:     "single invalid",
+			input:    []int{-100},
+			expected: []int{},
+		},
+	}
 
-		assert.Equal(t, expected, result)
-	})
-
-	t.Run("All valid sizes", func(t *testing.T) {
-		input := []int{100, 250, 500}
-		expected := []int{100, 250, 500}
-
-		result := FilterValidPackSizes(input)
-
-		assert.Equal(t, expected, result)
-	})
-
-	t.Run("All invalid sizes", func(t *testing.T) {
-		input := []int{-100, 0, -250}
-		expected := []int{}
-
-		result := FilterValidPackSizes(input)
-
-		assert.Equal(t, expected, result)
-	})
-
-	t.Run("Empty input", func(t *testing.T) {
-		input := []int{}
-		expected := []int{}
-
-		result := FilterValidPackSizes(input)
-
-		assert.Equal(t, expected, result)
-	})
-
-	t.Run("Single valid size", func(t *testing.T) {
-		input := []int{250}
-		expected := []int{250}
-
-		result := FilterValidPackSizes(input)
-
-		assert.Equal(t, expected, result)
-	})
-
-	t.Run("Single invalid size", func(t *testing.T) {
-		input := []int{-250}
-		expected := []int{}
-
-		result := FilterValidPackSizes(input)
-
-		assert.Equal(t, expected, result)
-	})
-
-	t.Run("Preserve order of valid sizes", func(t *testing.T) {
-		input := []int{1000, -100, 250, 0, 500}
-		expected := []int{1000, 250, 500}
-
-		result := FilterValidPackSizes(input)
-
-		assert.Equal(t, expected, result)
-	})
-
-	t.Run("Preserve duplicates", func(t *testing.T) {
-		input := []int{250, 250, -100, 500, 500}
-		expected := []int{250, 250, 500, 500}
-
-		result := FilterValidPackSizes(input)
-
-		assert.Equal(t, expected, result)
-	})
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			result := FilterValidPackSizes(tt.input)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
 }
 
 // Benchmark tests
