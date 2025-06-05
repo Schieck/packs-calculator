@@ -31,8 +31,8 @@ services:
     container_name: packs-backend
     environment:
       - DB_DSN=postgres://${POSTGRES_USER:-packer}:${POSTGRES_PASSWORD:-secret}@${DB_HOST:-db}:${DB_PORT:-5432}/${POSTGRES_DB:-packs}?sslmode=disable
-      - JWT_SECRET=${JWT_SECRET}
-      - AUTH_SECRET=${AUTH_SECRET}
+      - JWT_SECRET=${JWT_SECRET:-your-jwt-secret-change-in-production}
+      - AUTH_SECRET=${AUTH_SECRET:-your-auth-secret-change-in-production}
       - PORT=${BACKEND_PORT:-8080}
     depends_on:
       db:
@@ -59,7 +59,7 @@ services:
         AUTH_SECRET: ${AUTH_SECRET:-your-auth-secret-change-in-production}
     container_name: packs-frontend
     ports:
-      - "${FRONTEND_PORT:-3000}:80"
+      - "${FRONTEND_PORT:-5173}:80"
     depends_on:
       - backend
     restart: unless-stopped

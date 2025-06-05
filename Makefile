@@ -11,6 +11,7 @@ setup-dev: ## Complete development setup (includes starting all services)
 	@echo "Installing development tools..."
 	go install github.com/swaggo/swag/cmd/swag@latest
 	go install github.com/air-verse/air@latest
+	cd $(BACKEND_DIR) && swag init -g cmd/server/main.go -o ./docs	
 	go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
 	@echo "Installing backend dependencies..."
 	cd $(BACKEND_DIR) && go mod download && go mod tidy 
@@ -18,7 +19,6 @@ setup-dev: ## Complete development setup (includes starting all services)
 	cd frontend && pnpm install
 	@echo "Generating Swagger docs..."
 	cd $(BACKEND_DIR) && go build -o app cmd/server/main.go
-	cd $(BACKEND_DIR) && swag init -g cmd/server/main.go -o ./docs	
 	@echo "Starting all services..."
 	docker compose up -d --build
 	@echo "✅ Development setup complete!"
