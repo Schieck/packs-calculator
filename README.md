@@ -1,48 +1,15 @@
 # Packs Calculator
 
-<!-- Space for project demo video -->
+[packs-calculator-live-demo.webm](https://github.com/user-attachments/assets/1f94e8c6-0ad6-4136-bc0b-3b724b95c09f)
 
 ---
 
 A complete pack allocation calculator API built with Go, featuring optimal pack calculation algorithms, JWT authentication, and configuration management.
 
-## Live Application
-
-- **API**: [Your API URL]
-- **Documentation**: [Your API URL]/swagger/index.html
 
 ## Architecture Overview
 
-### Frontend Architecture
-
-The frontend is a modern React application with a component-based architecture:
-
-```
-frontend/
-├── src/
-│   ├── components/      # React components
-│   │   ├── ui/          # Reusable UI components (shadcn/ui)
-│   │   ├── OrderCalculator.tsx    # Main calculator interface
-│   │   ├── PackSizeManager.tsx    # Pack size management
-│   │   └── ErrorBoundary.tsx      # Error handling
-│   ├── lib/             # Utilities and store
-│   └── assets/          # Static assets
-├── public/              # Public assets
-└── Docker files         # Containerization
-```
-
-#### Frontend Technology Stack
-
-- **Framework**: React 19 with TypeScript
-- **Build Tool**: Vite
-- **Styling**: Tailwind CSS v4
-- **UI Components**: shadcn/ui (New York style) with Radix UI primitives
-- **State Management**: Zustand
-- **Form Handling**: React Hook Form with Zod validation
-- **Icons**: Lucide React
-- **Package Manager**: pnpm
-
-### Backend Architecture
+### Go Backend Architecture
 
 The backend follows a clean architecture pattern with clear separation of concerns:
 
@@ -69,6 +36,35 @@ backend/
 - **Documentation**: Swagger/OpenAPI
 - **Testing**: Testify
 - **Containerization**: Docker
+
+### Frontend Architecture
+
+The frontend is a modern React application with a component-based architecture:
+
+```
+frontend/
+├── src/
+│   ├── components/      # React components
+│   │   ├── ui/          # Reusable UI components (shadcn/ui)
+│   │   ├── OrderCalculator.tsx    # Main calculator interface
+│   │   ├── PackSizeManager.tsx    # Pack size management
+│   │   └── ErrorBoundary.tsx      # Error handling
+│   ├── lib/             # Utilities and store
+│   └── assets/          # Static assets
+├── public/              # Public assets
+└── Docker files         # Containerization
+```
+
+#### Frontend Technology Stack
+
+- **Framework**: React 19 with TypeScript
+- **Build Tool**: Vite
+- **Styling**: Tailwind v4
+- **UI Components**: shadcn/ui with Radix UI primitives
+- **State Management**: Zustand
+- **Form Handling**: React Hook Form with Zod validation
+- **Icons**: Lucide React
+- **Package Manager**: pnpm
 
 ## Getting Started
 
