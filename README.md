@@ -16,16 +16,16 @@ In many industries, products are sold in fixed pack sizes (e.g., 250, 500, 1000,
 This calculator solves this optimization problem efficiently using dynamic programming algorithms.
 
 ---
+# 🔴 Live App!
+**Backend  -> https://packs-backend.fly.dev/swagger/index.html**
+
+**Frontend -> https://packs-frontend.fly.dev/**
 
 ## Architecture & Design
 
 I followed clean architecture for maintainability, testability, and clear separation of concerns.
 I know that in Go interfaces are typically defined where they're used, but I placed them in the domain layer to prioritize architectural consistency and standardization across the codebase.
 I implemented features like rich domain entities and comprehensive validation considering the tradeoffs between type safety vs. simplicity, performance vs. readability, and Go idioms vs. architectural purity; ultimately choosing consistency and maintainability to showcase this in a business-critical calculation system.
-
-# Live App
-Backend  -> https://packs-backend.fly.dev/swagger/index.html
-Frontend -> https://packs-frontend.fly.dev/
 
 <img width="1418" alt="image" src="https://github.com/user-attachments/assets/68899617-4d23-40e2-8044-bf67dca8fd1c" />
 
