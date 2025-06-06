@@ -41,7 +41,7 @@ export function CreateConfigurationForm({
             });
             setName('');
             setIsExpanded(false);
-        } catch (err) {
+        } catch {
             setError('Failed to create configuration');
         }
     };

@@ -43,28 +43,16 @@ export function PackConfigurationPresets({
     };
 
     const handleDeleteConfiguration = async (id: number) => {
-        try {
-            await deleteConfiguration(id);
-        } catch (err) {
-            // Error is handled in the store
-        }
+        await deleteConfiguration(id);
     };
 
     const handleSetAsDefault = async (id: number) => {
-        try {
-            await setAsDefault(id);
-        } catch (err) {
-            // Error is handled in the store
-        }
+        await setAsDefault(id);
     };
 
     const handleCreateConfiguration = async (request: { name: string; pack_sizes: number[] }) => {
-        try {
-            await createConfiguration(request);
-        } catch (err) {
-            // Error is handled in the store
-            throw err; // Re-throw so the form can handle it
-        }
+        await createConfiguration(request);
+
     };
 
     const hasConfigurations = configurations.length > 0;
