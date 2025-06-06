@@ -3,9 +3,11 @@ FROM node:24.1.0 AS builder
 
 WORKDIR /app
 
-# Accept build argument for auth secret
+# Accept build arguments
 ARG AUTH_SECRET
+ARG API_BASE_URL=https://packs-backend.fly.dev/api/v1
 ENV VITE_AUTH_SECRET=${AUTH_SECRET}
+ENV VITE_API_BASE_URL=${API_BASE_URL}
 
 # Copy package files
 COPY package.json pnpm-lock.yaml ./

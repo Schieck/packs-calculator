@@ -1,8 +1,31 @@
 # Packs Calculator
 
+## Problem Statement
+
+In many industries, products are sold in fixed pack sizes (e.g., 250, 500, 1000, 2000, 5000 units per pack). When customers order specific quantities, businesses need to determine the optimal combination of pack sizes to fulfill the order while minimizing waste and the total number of packs sent.
+
+**The Challenge**: Given an order for N items and available pack sizes, calculate the minimum number of packs needed to fulfill the order (ensuring we never send fewer items than ordered).
+
+**Example**: 
+- Order: 251 items
+- Available packs: [250, 500, 1000, 2000, 5000]
+- Optimal solution: 1×500 pack (total: 500 items, 1 pack)
+- Alternative: 2×250 packs (total: 500 items, 2 packs) ❌ More packs
+- Alternative: 1×250 pack (total: 250 items) ❌ Insufficient items
+
+This calculator solves this optimization problem efficiently using dynamic programming algorithms.
+
+---
+
+## Architecture & Design
+
 I followed clean architecture for maintainability, testability, and clear separation of concerns.
 I know that in Go interfaces are typically defined where they're used, but I placed them in the domain layer to prioritize architectural consistency and standardization across the codebase.
 I implemented features like rich domain entities and comprehensive validation considering the tradeoffs between type safety vs. simplicity, performance vs. readability, and Go idioms vs. architectural purity; ultimately choosing consistency and maintainability to showcase this in a business-critical calculation system.
+
+# Live App
+Backend  -> https://packs-backend.fly.dev/swagger/index.html
+Frontend -> https://packs-frontend.fly.dev/
 
 <img width="1418" alt="image" src="https://github.com/user-attachments/assets/68899617-4d23-40e2-8044-bf67dca8fd1c" />
 
@@ -24,14 +47,20 @@ backend/
 ├── cmd/server/          # Application entry point
 ├── internal/            # Private modules
 │   ├── adapter/         # External interfaces (HTTP, Config)
-│   ├── domain/          # Core business entities
+│   ├── domain/          # Core business entities & interfaces
 │   ├── dto/             # Data transfer objects
-│   ├── service/         # Business logic layer
-│   └── usecase/         # Application use cases
+│   ├── service/         # Domain layer - Core business logic
+│   └── usecase/         # Application layer - Orchestrates domain services
 └── pkg/                 # Shared utilities
     ├── db/              # Database connection
     └── middleware/      # HTTP middleware
 ```
+
+**Layer Responsibilities**:
+- **Domain Layer** (`service/`): Contains core business logic and domain services that implement business rules
+- **Application Layer** (`usecase/`): Orchestrates domain services and handles application-specific workflows
+- **Adapter Layer** (`adapter/`): Handles external communication (HTTP handlers, configuration, etc.)
+- **Infrastructure Layer** (`pkg/`): Provides technical capabilities (database, middleware, utilities)
 
 ### Frontend Architecture
 

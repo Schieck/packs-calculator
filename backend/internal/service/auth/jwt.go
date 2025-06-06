@@ -17,7 +17,7 @@ func NewJWTTokenGenerator(jwtSecret string) entity.TokenGenerator {
 	}
 }
 
-func (g *JWTTokenGenerator) GenerateToken(claims *entity.JWTClaims) (string, error) {
+func (g JWTTokenGenerator) GenerateToken(claims *entity.JWTClaims) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := token.SignedString([]byte(g.jwtSecret))
 	if err != nil {
@@ -36,7 +36,7 @@ func NewJWTTokenValidator(jwtSecret string) entity.TokenValidator {
 	}
 }
 
-func (v *JWTTokenValidator) ValidateToken(tokenString string) (*entity.JWTClaims, error) {
+func (v JWTTokenValidator) ValidateToken(tokenString string) (*entity.JWTClaims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &entity.JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("invalid signing method")

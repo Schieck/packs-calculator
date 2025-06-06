@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -30,13 +31,12 @@ import (
 	"github.com/Schieck/packs-calculator/pkg/db"
 	"github.com/Schieck/packs-calculator/pkg/middleware"
 
-	_ "github.com/Schieck/packs-calculator/docs"
+	"github.com/Schieck/packs-calculator/docs"
 )
 
 // @title Packs Calculator API
 // @version 1.0
 // @description API for calculating packs and managing pack configurations with simple JWT authentication
-// @host localhost:8080
 // @BasePath /api/v1
 // @securityDefinitions.apikey BearerAuth
 // @in header
@@ -52,6 +52,9 @@ func main() {
 
 	// Load configuration
 	cfg := config.LoadConfig()
+
+	// Configure Swagger host dynamically
+	configureSwaggerHost(cfg.Server.Port)
 
 	// Initialize database
 	database, err := db.NewConnection(cfg.Database.DSN)
@@ -173,4 +176,34 @@ func main() {
 	}
 
 	slog.Info("Server exited")
+}
+
+// configureSwaggerHost dynamically sets the Swagger host based on the environment
+func configureSwaggerHost(port string) {
+	// Check if we're running on fly.io by looking for FLY_APP_NAME environment variable
+	flyAppName := os.Getenv("FLY_APP_NAME")
+
+	if flyAppName != "" {
+		// Running on fly.io - use the fly.io hostname
+		docs.SwaggerInfo.Host = flyAppName + ".fly.dev"
+		docs.SwaggerInfo.Schemes = []string{"https"}
+	} else {
+		// Running locally or in other environments
+		hostname := os.Getenv("SWAGGER_HOST")
+		if hostname == "" {
+			// Default to localhost with the configured port
+			hostname = "localhost:" + port
+		}
+
+		// Determine scheme based on hostname
+		if strings.Contains(hostname, "localhost") || strings.Contains(hostname, "127.0.0.1") {
+			docs.SwaggerInfo.Host = hostname
+			docs.SwaggerInfo.Schemes = []string{"http"}
+		} else {
+			docs.SwaggerInfo.Host = hostname
+			docs.SwaggerInfo.Schemes = []string{"https", "http"}
+		}
+	}
+
+	slog.Info("Swagger configured", "host", docs.SwaggerInfo.Host, "schemes", docs.SwaggerInfo.Schemes)
 }

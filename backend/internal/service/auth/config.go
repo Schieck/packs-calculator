@@ -8,7 +8,7 @@ import (
 
 type DefaultTimeProvider struct{}
 
-func (p *DefaultTimeProvider) Now() time.Time {
+func (p DefaultTimeProvider) Now() time.Time {
 	return time.Now()
 }
 
@@ -26,14 +26,14 @@ func NewDefaultAuthConfig(authSecret string, issuer string) entity.AuthConfig {
 	}
 }
 
-func (c *DefaultAuthConfig) GetAuthSecret() string {
+func (c DefaultAuthConfig) GetAuthSecret() string {
 	return c.authSecret
 }
 
-func (c *DefaultAuthConfig) GetTokenExpiration() time.Duration {
+func (c DefaultAuthConfig) GetTokenExpiration() time.Duration {
 	return c.tokenExpiration
 }
 
-func (c *DefaultAuthConfig) GetIssuer() string {
+func (c DefaultAuthConfig) GetIssuer() string {
 	return c.issuer
 }

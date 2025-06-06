@@ -30,7 +30,7 @@ func NewHealthHandler(healthUseCase *healthUseCase.HealthUseCase, logger *slog.L
 // @Success 200 {object} dto.HealthResponse
 // @Failure 503 {object} errs.ErrorResponse
 // @Router /health [get]
-func (h *HealthHandler) Health(c *gin.Context) {
+func (h HealthHandler) Health(c *gin.Context) {
 	entityResponse, err := h.healthUseCase.Execute()
 	if err != nil {
 		h.logger.Error("Health check failed", "error", err)

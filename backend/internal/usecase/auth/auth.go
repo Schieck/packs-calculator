@@ -31,7 +31,7 @@ func NewValidateTokenUseCase(authService entity.AuthService, logger *slog.Logger
 	}
 }
 
-func (uc *AuthenticateUseCase) Execute(req entity.AuthRequest) (*entity.AuthResult, error) {
+func (uc AuthenticateUseCase) Execute(req entity.AuthRequest) (*entity.AuthResult, error) {
 	uc.logger.Info("Executing authentication use case")
 
 	if err := uc.validateAuthRequest(req); err != nil {
@@ -49,7 +49,7 @@ func (uc *AuthenticateUseCase) Execute(req entity.AuthRequest) (*entity.AuthResu
 	return response, nil
 }
 
-func (uc *ValidateTokenUseCase) Execute(token string) (*entity.JWTClaims, error) {
+func (uc ValidateTokenUseCase) Execute(token string) (*entity.JWTClaims, error) {
 	uc.logger.Debug("Executing token validation use case")
 
 	if err := uc.validateToken(token); err != nil {
@@ -67,14 +67,14 @@ func (uc *ValidateTokenUseCase) Execute(token string) (*entity.JWTClaims, error)
 	return claims, nil
 }
 
-func (uc *AuthenticateUseCase) validateAuthRequest(req entity.AuthRequest) error {
+func (uc AuthenticateUseCase) validateAuthRequest(req entity.AuthRequest) error {
 	if req.Secret == "" {
 		return errs.ErrInvalidCredentials
 	}
 	return nil
 }
 
-func (uc *ValidateTokenUseCase) validateToken(token string) error {
+func (uc ValidateTokenUseCase) validateToken(token string) error {
 	if token == "" {
 		return errs.ErrInvalidToken
 	}

@@ -32,7 +32,7 @@ func NewAuthServiceWithDefaults(jwtSecret, authSecret string) entity.AuthService
 	return NewAuthService(config, tokenGenerator, tokenValidator, timeProvider)
 }
 
-func (s *authService) Authenticate(req entity.AuthRequest) (*entity.AuthResult, error) {
+func (s authService) Authenticate(req entity.AuthRequest) (*entity.AuthResult, error) {
 	if req.Secret == "" || req.Secret != s.config.GetAuthSecret() {
 		return nil, errors.New("invalid authentication secret")
 	}
@@ -40,7 +40,7 @@ func (s *authService) Authenticate(req entity.AuthRequest) (*entity.AuthResult, 
 	return s.GenerateToken("authenticated-user")
 }
 
-func (s *authService) GenerateToken(subject string) (*entity.AuthResult, error) {
+func (s authService) GenerateToken(subject string) (*entity.AuthResult, error) {
 	if subject == "" {
 		return nil, errors.New("subject cannot be empty")
 	}
@@ -69,7 +69,7 @@ func (s *authService) GenerateToken(subject string) (*entity.AuthResult, error) 
 	}, nil
 }
 
-func (s *authService) ValidateToken(tokenString string) (*entity.JWTClaims, error) {
+func (s authService) ValidateToken(tokenString string) (*entity.JWTClaims, error) {
 	if tokenString == "" {
 		return nil, errors.New("token cannot be empty")
 	}

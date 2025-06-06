@@ -57,7 +57,7 @@ func NewPackConfigurationHandler(
 // @Failure 500 {object} errs.ErrorResponse
 // @Security BearerAuth
 // @Router /pack-configurations [get]
-func (h *PackConfigurationHandler) GetAllConfigurations(c *gin.Context) {
+func (h PackConfigurationHandler) GetAllConfigurations(c *gin.Context) {
 	configurations, err := h.getAllConfigurationsUseCase.Execute()
 	if err != nil {
 		h.logger.Error("Get all pack configurations use case failed", "error", err)
@@ -84,7 +84,7 @@ func (h *PackConfigurationHandler) GetAllConfigurations(c *gin.Context) {
 // @Failure 500 {object} errs.ErrorResponse
 // @Security BearerAuth
 // @Router /pack-configurations/{id} [get]
-func (h *PackConfigurationHandler) GetConfigurationByID(c *gin.Context) {
+func (h PackConfigurationHandler) GetConfigurationByID(c *gin.Context) {
 	idParam := c.Param("id")
 	id, err := strconv.Atoi(idParam)
 	if err != nil {
@@ -119,7 +119,7 @@ func (h *PackConfigurationHandler) GetConfigurationByID(c *gin.Context) {
 // @Failure 500 {object} errs.ErrorResponse
 // @Security BearerAuth
 // @Router /pack-configurations/default [get]
-func (h *PackConfigurationHandler) GetDefaultConfiguration(c *gin.Context) {
+func (h PackConfigurationHandler) GetDefaultConfiguration(c *gin.Context) {
 	configuration, err := h.getDefaultConfigurationUseCase.Execute()
 	if err != nil {
 		h.logger.Error("Get default pack configuration use case failed", "error", err)
@@ -145,7 +145,7 @@ func (h *PackConfigurationHandler) GetDefaultConfiguration(c *gin.Context) {
 // @Failure 500 {object} errs.ErrorResponse
 // @Security BearerAuth
 // @Router /pack-configurations [post]
-func (h *PackConfigurationHandler) CreateConfiguration(c *gin.Context) {
+func (h PackConfigurationHandler) CreateConfiguration(c *gin.Context) {
 	var dtoReq dto.CreatePackConfigurationRequest
 
 	if err := c.ShouldBindJSON(&dtoReq); err != nil {
@@ -192,7 +192,7 @@ func (h *PackConfigurationHandler) CreateConfiguration(c *gin.Context) {
 // @Failure 500 {object} errs.ErrorResponse
 // @Security BearerAuth
 // @Router /pack-configurations/{id} [put]
-func (h *PackConfigurationHandler) UpdateConfiguration(c *gin.Context) {
+func (h PackConfigurationHandler) UpdateConfiguration(c *gin.Context) {
 	idParam := c.Param("id")
 	id, err := strconv.Atoi(idParam)
 	if err != nil {
@@ -248,7 +248,7 @@ func (h *PackConfigurationHandler) UpdateConfiguration(c *gin.Context) {
 // @Failure 500 {object} errs.ErrorResponse
 // @Security BearerAuth
 // @Router /pack-configurations/{id} [delete]
-func (h *PackConfigurationHandler) DeleteConfiguration(c *gin.Context) {
+func (h PackConfigurationHandler) DeleteConfiguration(c *gin.Context) {
 	idParam := c.Param("id")
 	id, err := strconv.Atoi(idParam)
 	if err != nil {
@@ -284,7 +284,7 @@ func (h *PackConfigurationHandler) DeleteConfiguration(c *gin.Context) {
 // @Failure 500 {object} errs.ErrorResponse
 // @Security BearerAuth
 // @Router /pack-configurations/{id}/default [patch]
-func (h *PackConfigurationHandler) SetDefaultConfiguration(c *gin.Context) {
+func (h PackConfigurationHandler) SetDefaultConfiguration(c *gin.Context) {
 	idParam := c.Param("id")
 	id, err := strconv.Atoi(idParam)
 	if err != nil {

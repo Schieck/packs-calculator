@@ -44,7 +44,7 @@ func NewConnection(dsn string) (*DB, error) {
 	return dbWrapper, nil
 }
 
-func (db *DB) runMigrations(dsn string) error {
+func (db DB) runMigrations(dsn string) error {
 	migrationDB, err := sql.Open("postgres", dsn)
 	if err != nil {
 		return fmt.Errorf("failed to open migration database connection: %w", err)
@@ -72,4 +72,4 @@ func (db *DB) runMigrations(dsn string) error {
 	}
 
 	return nil
-} 
+}

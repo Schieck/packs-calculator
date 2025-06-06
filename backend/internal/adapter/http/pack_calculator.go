@@ -37,7 +37,7 @@ func NewCalculatorHandler(calculatePacksUseCase *calculatorUseCase.CalculatePack
 // @Failure 500 {object} errs.ErrorResponse
 // @Security BearerAuth
 // @Router /calculate [post]
-func (h *CalculatorHandler) Calculate(c *gin.Context) {
+func (h CalculatorHandler) Calculate(c *gin.Context) {
 	var dtoReq dto.CalculationRequest
 
 	if err := c.ShouldBindJSON(&dtoReq); err != nil {

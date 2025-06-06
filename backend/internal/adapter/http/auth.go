@@ -39,7 +39,7 @@ func NewAuthHandler(authenticateUseCase *authUseCase.AuthenticateUseCase, logger
 // @Failure 401 {object} errs.ErrorResponse
 // @Failure 500 {object} errs.ErrorResponse
 // @Router /auth/token [post]
-func (h *AuthHandler) Authenticate(c *gin.Context) {
+func (h AuthHandler) Authenticate(c *gin.Context) {
 	var dtoReq dto.AuthRequest
 
 	if err := c.ShouldBindJSON(&dtoReq); err != nil {
